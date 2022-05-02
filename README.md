@@ -1,5 +1,7 @@
 # vue-weather
 
+## This is a very simple project that I want to improve.
+
 ## Project setup
 ```
 yarn install
