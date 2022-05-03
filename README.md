@@ -1,7 +1,7 @@
 # vue-weather
-```
-Thi``s is a very simple project testing open weather api.
-```
+
+This is a very simple project, testing openweather api.
+
 ## Project setup
 ```
 yarn install
