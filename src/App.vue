@@ -10,13 +10,12 @@
         <input
           type="text"
           class="search-bar"
-          placeholder="Enter a location..."
+          placeholder="Enter a city name..."
           v-model="query"
-          @keypress="fetchWeather"
+          @keypress="fetchWeatherAxios"
         />
-        <!-- <font-awesome-icon class="search-icon" icon="fa-solid fa-search" /> -->
       </div>
-
+      <loading :active="isLoading" :is-full-page="fullPage" />
       <div v-if="weather.main">
         <div class="location-box">
           <div class="location">
@@ -30,22 +29,28 @@
           <div class="weather">{{ weather.weather[0].main }}</div>
         </div>
       </div>
-      <div v-else class="main-text">No city informed...</div>
     </main>
   </div>
 </template>
 
 <script>
 import dateBuilder from "@/helper/util";
+import { getWeather } from "@/service/weather";
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
 
 export default {
   name: "App",
 
+  components: {
+    Loading,
+  },
+
   data: () => ({
-    api_key: "3d84546881654ccd7964d20dc7e4a847",
-    url_base: "https://api.openweathermap.org/data/2.5/",
     query: "",
     weather: {},
+    isLoading: false,
+    fullPage: true,
   }),
 
   computed: {
@@ -59,15 +64,16 @@ export default {
   },
 
   methods: {
-    fetchWeather(e) {
-      if (e.key === "Enter") {
-        fetch(
-          `${this.url_base}weather?q=${this.query}&units=metric&APPID=${this.api_key}`
-        )
-          .then((res) => {
-            return res.json();
-          })
-          .then(this.setResults);
+    async fetchWeatherAxios(e) {
+      if (e.key !== "Enter") return;
+
+      this.isLoading = true;
+      try {
+        const { data } = await getWeather(this.query);
+        this.weather = data;
+        this.isLoading = false;
+      } catch (error) {
+        this.isLoading = false;
       }
     },
 
@@ -90,18 +96,22 @@ body {
   display: flex;
   justify-content: center;
   padding: 70px;
+  background-color: #e4e4e4;
 }
+
 #app {
-  background-image: url("./assets/cold-bg.jpg");
-  background-size: cover;
+  background-image: url("./assets/cold-bg.png");
+  background-size: auto;
   background-position: bottom;
   transition: 0.4s;
   width: 500px;
   height: 800px;
   border-radius: 20px;
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px,
-    rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px,
-    rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+  box-shadow: rgba(255, 255, 255, 0.25) 0px 54px 55px,
+    rgba(255, 255, 255, 0.12) 0px -12px 30px,
+    rgba(255, 255, 255, 0.12) 0px 4px 6px,
+    rgba(255, 255, 255, 0.17) 0px 12px 13px,
+    rgba(255, 255, 255, 0.09) 0px -3px 5px;
 }
 
 #app.warm {
@@ -138,17 +148,16 @@ main {
   outline: none;
   background: none;
 
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px,
-    rgba(0, 0, 0, 0.22) 0px 10px 10px;
-  background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 12px 12px 10px 10px;
+  box-shadow: 5px 5px 16px rgba(0, 0, 0, 0.25);
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 18px;
   transition: 0.4s;
 }
 
 .search-box .search-bar:focus {
-  box-shadow: 0px 0px 16px rgba(0, 0, 0, 0.25);
-  background-color: rgba(255, 255, 255, 0.75);
-  border-radius: 12px 12px 12px 12px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px,
+    rgba(0, 0, 0, 0.22) 0px 10px 10px;
+  background-color: rgba(255, 255, 255, 1);
 }
 
 .location-box .location {
@@ -182,13 +191,14 @@ main {
   border-radius: 16px;
   margin: 30px 0px;
 
-  box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+  box-shadow: rgba(255, 255, 255, 0.25) 0px 13px 27px -5px,
+    rgba(255, 255, 255, 0.3) 0px 8px 16px -8px;
 }
 
 .weather-box .weather {
   color: #fff;
   font-size: 32px;
-  font-weight: 700;
+  font-weight: 100;
   text-shadow: 3px 6px rgba(0, 0, 0, 0.25);
 }
 
@@ -203,5 +213,12 @@ main {
 .search-icon {
   display: inline-block;
   position: relative;
+}
+
+/* Media Queries */
+@media (max-width: 600px) {
+  body {
+    padding: 2px;
+  }
 }
 </style>
